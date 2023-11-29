@@ -1,0 +1,36 @@
+[submodule "travelio-community-composer"]
+	path = travelio-community-composer
+	url = https://github.com/OjAntoni/travelio-community-composer.git
+[submodule "travelio-topic-service"]
+	path = travelio-topic-service
+	url = https://github.com/OjAntoni/travelio-topic-service.git
+[submodule "travelio-engage-hub-service"]
+	path = travelio-engage-hub-service
+	url = https://github.com/OjAntoni/travelio-engage-hub-service.git
+[submodule "travelio-eureka-server"]
+	path = travelio-eureka-server
+	url = https://github.com/OjAntoni/travelio-eureka-server.git
+[submodule "travelio-user-service"]
+	path = travelio-user-service
+	url = https://github.com/OjAntoni/travelio-user-service.git
+[submodule "travelio-topic-notificator"]
+	path = travelio-topic-notificator
+	url = https://github.com/OjAntoni/travelio-topic-notificator.git
+[submodule "travelio-publication-service"]
+	path = travelio-publication-service
+	url = https://github.com/OjAntoni/travelio-publication-service.git
+[submodule "travelio-mail-sender"]
+	path = travelio-mail-sender
+	url = https://github.com/OjAntoni/travelio-mail-sender.git
+[submodule "travelio-trip-manager"]
+	path = travelio-trip-manager
+	url = https://github.com/OjAntoni/travelio-trip-manager.git
+[submodule "travelio-map-service"]
+	path = travelio-map-service
+	url = https://github.com/OjAntoni/travelio-map-service.git
+[submodule "travelio-user-replica"]
+	path = travelio-user-replica
+	url = https://github.com/OjAntoni/travelio-user-replica.git
+[submodule "travelio-api-gateway"]
+	path = travelio-api-gateway
+	url = https://github.com/OjAntoni/travelio-api-gateway.git
