@@ -1,0 +1,215 @@
+version: '3'
+services:
+  usersmb:
+    image: rmohr/activemq:5.15.9
+    ports:
+      - "61616:61616"
+      - "8161:8161"
+    environment:
+      ACTIVEMQ_REMOVE_DEFAULT_ACCOUNT: "true"
+      ACTIVEMQ_ADMIN_LOGIN: "admin"
+      ACTIVEMQ_ADMIN_PASSWORD: "admin"
+
+  topicsmb:
+    image: rmohr/activemq:5.15.9
+    ports:
+      - "61617:61616"
+      - "8162:8161"
+    environment:
+      ACTIVEMQ_REMOVE_DEFAULT_ACCOUNT: "true"
+      ACTIVEMQ_ADMIN_LOGIN: "admin"
+      ACTIVEMQ_ADMIN_PASSWORD: "admin"
+  messagesmb:
+    image: rmohr/activemq:5.15.9
+    ports:
+      - "61618:61616"
+      - "8163:8161"
+    environment:
+      ACTIVEMQ_REMOVE_DEFAULT_ACCOUNT: "true"
+      ACTIVEMQ_ADMIN_LOGIN: "admin"
+      ACTIVEMQ_ADMIN_PASSWORD: "admin"
+  
+  user_db:
+    image: postgres:13
+    ports:
+      - "5000:5432"
+    environment:
+      - POSTGRES_DB=mydatabase
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=secret
+  
+  user_replica_db:
+    image: postgres:13
+    ports:
+      - "5010:5432"
+    environment:
+      - POSTGRES_DB=mydatabase
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=secret
+  
+  publications_db:
+    image: postgres:13
+    ports:
+      - "5442:5432"
+    environment:
+      - POSTGRES_DB=mydatabase
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=secret
+  
+  engage_hub_db:
+    image: postgres:13
+    ports:
+      - "5436:5432"
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+  
+  topics_db:
+    image: postgres:13
+    ports:
+      - "5438:5432"
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+  
+  postGIS:
+    image: postgis/postgis
+    ports:
+      - "5440:5432"
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  trips_db:
+    image: postgres:13
+    ports:
+      - "5444:5432"
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+  
+  user-service:
+    build:
+      context: ./travelio-user-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://user_db:5432/postgres
+      - SPRING_ACTIVEMQ_BROKER_URL=tcp://usersmb:61616
+    depends_on:
+      - usersmb
+      - user_db
+  
+  map-service:
+    build:
+      context: ./travelio-map-service
+      dockerfile: Dockerfile
+    ports:
+      - "8092:8092"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postGIS:5432/postgres
+    depends_on:
+      - postGIS
+
+  trip-manager:
+    build:
+      context: ./travelio-trip-manager
+      dockerfile: Dockerfile
+    ports:
+      - "8094:8094"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://trips_db:5432/postgres
+    depends_on:
+      - trips_db
+  
+  user-replica:
+    build:
+      context: ./travelio-user-replica
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://user_replica_db:5432/postgres
+      - SPRING_ACTIVEMQ_BROKER_URL=tcp://usersmb:61616
+    depends_on:
+      - user_replica_db
+  
+  publication-service:
+    build:
+      context: ./travelio-publication-service
+      dockerfile: Dockerfile
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://publications_db:5432/postgres
+      - SPRING_ACTIVEMQ_BROKER_URL=tcp://usersmb:61616
+    depends_on:
+      - user_replica_db
+  
+  mail-sender:
+    build:
+      context: ./travelio-mail-sender
+      dockerfile: Dockerfile
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_ACTIVEMQ_BROKER_URL=tcp://messagesmb:61616
+    depends_on:
+      - messagesmb
+  
+  community-composer:
+    build:
+      context: ./travelio-community-composer
+      dockerfile: Dockerfile
+    ports:
+      - "7070:7070"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dockers
+
+  engage-hub-service:
+    build:
+      context: ./travelio-engage-hub-service
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://engage_hub_db:5432/postgres
+  
+  topic-service:
+    build:
+      context: ./travelio-topic-service
+      dockerfile: Dockerfile
+    ports:
+      - "8089:8089"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://topics_db:5432/postgres
+      - SPRING_ACTIVEMQ_BROKER_URL=tcp://topics_mb:61616
+  
+  topic-notificator:
+    build:
+      context: ./travelio-topic-notificator
+      dockerfile: Dockerfile
+    ports:
+      - "8091:8091"
+    environment:
+      - SPRING_ACTIVEMQ_BROKER_URL1=tcp://topicsmb:61616
+      - SPRING_ACTIVEMQ_BROKER_URL2=tcp://messagesmb:61616
+
+  api-gateway:
+    build:
+      context: ./travelio-api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "9090:9090"
+      
